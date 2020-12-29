@@ -213,9 +213,10 @@ def invoke_semgrep(
         if output_file is not None:
             with open(output_file, "w") as fout:
                 fout.write("MARKDOWN_COMMENT<<EOF\n")
-                fout.write(str(res))
+                fout.write(str(res).replace("\n", "%0A"))
                 fout.write("\nEOF\n")
-        print("::set-output name=semgrepdepoutput::this is custom text")
+        print("::set-output name=semgrepdepoutput::this is custom\ntext")
+        print("::set-output name=semgrepdepoutput2::another%0Atext")
 
 
 def cai(
