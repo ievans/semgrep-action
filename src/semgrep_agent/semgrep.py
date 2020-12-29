@@ -207,13 +207,14 @@ def invoke_semgrep(
         for a in introduced_targets.values():
             res = compare_lockfiles(None, a)
 
+        # from https://github.com/actions/toolkit/blob/main/docs/commands.md
         output_file = os.environ.get("GITHUB_ENV")
         print(f"output file is {output_file}")
         if output_file is not None:
             with open(output_file, "w") as fout:
-                fout.write("MARKDOWN_COMMENT<<EOF")
+                fout.write("MARKDOWN_COMMENT<<EOF\n")
                 fout.write(str(res))
-                fout.write("EOF")
+                fout.write("\nEOF\n")
         print("::set-output name=semgrepdepoutput::this is custom text")
 
 
