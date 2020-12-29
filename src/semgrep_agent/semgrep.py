@@ -126,7 +126,7 @@ def fix_head_for_github(
             git.checkout([stashed_rev])
 
 
-def compare_lockfiles(a_text: Optional[str], b_text: str) -> Dict[str, Any]:
+def compare_lockfiles(path: str, a_text: Optional[str], b_text: str) -> Dict[str, Any]:
     REMOTE_URL = "https://deps.semgrep.dev/semgrepdep"
     LOCAL_URL = "http://localhost:5000/semgrepdep"
     TARGET_URL = REMOTE_URL
@@ -136,6 +136,8 @@ def compare_lockfiles(a_text: Optional[str], b_text: str) -> Dict[str, Any]:
         json={
             "old": a_text,
             "new": b_text,
+            "old_path": path,
+            "new_path": path,
         },
         timeout=600,
     )
@@ -202,10 +204,10 @@ def invoke_semgrep(
         print("introduced", introduced_targets.keys())
 
         res = {}
-        for a, b in changed_targets.values():
-            res = compare_lockfiles(a, b)
-        for a in introduced_targets.values():
-            res = compare_lockfiles(None, a)
+        for path, (a, b) in changed_targets.items():
+            res = compare_lockfiles(str(path), a, b)
+        for path, a in introduced_targets.items():
+            res = compare_lockfiles(str(path), None, a)
 
         # from https://github.com/actions/toolkit/blob/main/docs/commands.md
         output_file = os.environ.get("GITHUB_ENV")
