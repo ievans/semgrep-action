@@ -33,7 +33,7 @@ jobs:
             })
 
   semgrepdep-comment:
-    name: semgrepdep
+    name: semgrepdep-comment
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -44,7 +44,7 @@ jobs:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
             const comment = process.env.MARKDOWN_COMMENT;
-            message = "hi there ${comment}";
+            message = `hi there ${comment}`;
             github.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
