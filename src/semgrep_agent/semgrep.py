@@ -209,14 +209,15 @@ def invoke_semgrep(
         for path, a in introduced_targets.items():
             res += compare_lockfiles(str(path), None, a)
 
-        # from https://github.com/actions/toolkit/blob/main/docs/commands.md
-        output_file = os.environ.get("GITHUB_ENV")
-        print(f"output file is {output_file}")
-        if output_file is not None:
-            with open(output_file, "w") as fout:
-                fout.write("MARKDOWN_COMMENT<<EOF\n")
-                fout.write(str(res))
-                fout.write("\nEOF\n")
+        if len(res):
+            # from https://github.com/actions/toolkit/blob/main/docs/commands.md
+            output_file = os.environ.get("GITHUB_ENV")
+            print(f"output file is {output_file}")
+            if output_file is not None:
+                with open(output_file, "w") as fout:
+                    fout.write("MARKDOWN_COMMENT<<EOF\n")
+                    fout.write(str(res))
+                    fout.write("\nEOF\n")
 
 
 def cai(
