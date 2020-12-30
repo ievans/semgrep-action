@@ -129,19 +129,19 @@ def compare_lockfiles(
     LOCAL_URL = "http://localhost:5000/semgrepdep"
     TARGET_URL = REMOTE_URL
     click.echo(f"posting lockfile comparison request to {TARGET_URL}...", err=True)
-    output = requests.post(
-        TARGET_URL,
-        json={
-            "old": a_text,
-            "new": b_text,
-            "old_path": path,
-            "new_path": path,
-            "for_repo": for_repo,
-            "for_pr": for_pr,
-        },
-        timeout=600,
-    )
     try:
+        output = requests.post(
+            TARGET_URL,
+            json={
+                "old": a_text,
+                "new": b_text,
+                "old_path": path,
+                "new_path": path,
+                "for_repo": for_repo,
+                "for_pr": for_pr,
+            },
+            timeout=600,
+        )
         res: Dict[str, str] = output.json()
         if res.get("status", "") != "ok":
             click.echo(f"remote service failed to analyze {path}", err=True)
@@ -149,6 +149,9 @@ def compare_lockfiles(
         return res["comment"]
     except json.JSONDecodeError:
         click.echo(f"bad response from {REMOTE_URL}", err=True)
+        return None
+    except Exception as ex:
+        click.echo(f"something went wrong contacting {REMOTE_URL}: {ex}", err=True)
         return None
 
 
