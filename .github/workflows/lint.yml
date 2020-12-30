@@ -27,7 +27,7 @@ jobs:
           script: |
             const comment = process.env.MARKDOWN_COMMENT;
             message = `${comment}`;
-            if (message.length > 0) {
+            if (message && message.length > 0) {
               github.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
