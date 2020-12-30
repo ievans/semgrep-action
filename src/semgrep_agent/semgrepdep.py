@@ -177,11 +177,11 @@ def invoke_semgrep(
         for path, (a, b) in changed_targets.items():
             compared = compare_lockfiles(str(path), a, b, this_repo_name, this_pr_id)
             if compared is not None:
-                res += compared
+                res += compared + "\n"
         for path, a in introduced_targets.items():
             compared = compare_lockfiles(str(path), None, a, this_repo_name, this_pr_id)
             if compared is not None:
-                res += compared
+                res += compared + "\n"
 
         if len(res):
             # from https://github.com/actions/toolkit/blob/main/docs/commands.md
