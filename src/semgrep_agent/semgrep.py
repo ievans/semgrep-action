@@ -1,12 +1,8 @@
 import io
 import json
 import os
-import sys
-import time
-import urllib.parse
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
 from textwrap import dedent
 from textwrap import indent
@@ -18,11 +14,7 @@ from typing import Iterator
 from typing import List
 from typing import Optional
 from typing import TextIO
-from typing import Tuple
-from typing import TYPE_CHECKING
-from typing import Union
 
-import attr
 import click
 import requests
 import sh
@@ -126,11 +118,17 @@ def fix_head_for_github(
             git.checkout([stashed_rev])
 
 
-def compare_lockfiles(path: str, a_text: Optional[str], b_text: str) -> str:
+def compare_lockfiles(
+    path: str,
+    a_text: Optional[str],
+    b_text: str,
+    for_repo: Optional[str],
+    for_pr: Optional[str],
+) -> Optional[str]:
     REMOTE_URL = "https://deps.semgrep.dev/semgrepdep"
     LOCAL_URL = "http://localhost:5000/semgrepdep"
     TARGET_URL = REMOTE_URL
-    print(f"posting to {TARGET_URL}...")
+    click.echo(f"posting lockfile comparison request to {TARGET_URL}...", err=True)
     output = requests.post(
         TARGET_URL,
         json={
@@ -138,14 +136,20 @@ def compare_lockfiles(path: str, a_text: Optional[str], b_text: str) -> str:
             "new": b_text,
             "old_path": path,
             "new_path": path,
+            "for_repo": for_repo,
+            "for_pr": for_pr,
         },
         timeout=600,
     )
-    res: str = output.json()
-    print(res)
-    return res
-    # if res['status'] == 1:
-    #    print(res)
+    try:
+        res: Dict[str, str] = output.json()
+        if res.get("status", "") != "ok":
+            click.echo(f"remote service failed to analyze {path}", err=True)
+            return None
+        return res["comment"]
+    except json.JSONDecodeError:
+        click.echo(f"bad response from {REMOTE_URL}", err=True)
+        return None
 
 
 TARGET_FILENAMES = ["pipfile.lock", "yarn.lock", "package-lock.json"]
@@ -164,6 +168,8 @@ def invoke_semgrep(
     base_commit_ref: Optional[str],
     head_ref: Optional[str],
     semgrep_ignore: TextIO,
+    this_repo_name: Optional[str],
+    this_pr_id: Optional[str],
 ) -> None:
     debug_echo("=== adding semgrep configuration")
 
@@ -200,20 +206,24 @@ def invoke_semgrep(
             t: text for t, text in new_targets_text.items() if t not in old_targets_text
         }
 
-        print("changed", changed_targets.keys())
-        print("introduced", introduced_targets.keys())
+        click.echo(f"changed: {changed_targets.keys()}", err=True)
+        click.echo(f"introduced {introduced_targets.keys()}", err=True)
 
         res = ""
         for path, (a, b) in changed_targets.items():
-            res += compare_lockfiles(str(path), a, b)
+            compared = compare_lockfiles(str(path), a, b, this_repo_name, this_pr_id)
+            if compared is not None:
+                res += compared
         for path, a in introduced_targets.items():
-            res += compare_lockfiles(str(path), None, a)
+            compared = compare_lockfiles(str(path), None, a, this_repo_name, this_pr_id)
+            if compared is not None:
+                res += compared
 
         if len(res):
             # from https://github.com/actions/toolkit/blob/main/docs/commands.md
             output_file = os.environ.get("GITHUB_ENV")
-            print(f"output file is {output_file}")
             if output_file is not None:
+                click.echo(f"Github env output file is {output_file}", err=True)
                 with open(output_file, "w") as fout:
                     fout.write("MARKDOWN_COMMENT<<EOF\n")
                     fout.write(str(res))
@@ -221,6 +231,12 @@ def invoke_semgrep(
 
 
 def cai(
-    base_commit_ref: Optional[str], head_ref: Optional[str], semgrep_ignore: TextIO
+    base_commit_ref: Optional[str],
+    head_ref: Optional[str],
+    semgrep_ignore: TextIO,
+    this_repo_name: Optional[str],
+    this_pr_id: Optional[str],
 ) -> None:
-    invoke_semgrep(base_commit_ref, head_ref, semgrep_ignore)
+    invoke_semgrep(
+        base_commit_ref, head_ref, semgrep_ignore, this_repo_name, this_pr_id
+    )

@@ -83,4 +83,6 @@ def main(
         meta.base_commit_ref,
         meta.head_ref,
         semgrep.get_semgrepignore([]),
+        meta.repo_url,
+        meta.pr_id,
     )
