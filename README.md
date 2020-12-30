@@ -1,5 +1,9 @@
 # Semgrepdep: Dependency Permissions Analysis
 
+_before & after:_
+
+<img src="https://user-images.githubusercontent.com/409041/103381095-c7b68e80-4ab8-11eb-8736-9fb9e22f287c.png" />
+
 [![r2c community slack](https://img.shields.io/badge/r2c_slack-join-brightgreen?style=for-the-badge&logo=slack&labelColor=4A154B)](https://join.slack.com/t/r2c-community/shared_invite/enQtNjU0NDYzMjAwODY4LWE3NTg1MGNhYTAwMzk5ZGRhMjQ2MzVhNGJiZjI1ZWQ0NjQ2YWI4ZGY3OGViMGJjNzA4ODQ3MjEzOWExNjZlNTA)
 
 Semgrepdep inspects PRs with yarn/pipenv lockfile changes and uses [Semgrep](https://semgrep.dev) to summarize the "permissions" in the modules and whether they changed. Permissions are coarse but roughly fall into does it use exec/equivalent (code execution), does it have any network functionality, IO functionality, use crypto libraries, etc.
