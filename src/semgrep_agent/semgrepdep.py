@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import time
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
@@ -104,12 +105,16 @@ def compare_lockfiles(
             timeout=600,
         )
         res: Dict[str, str] = output.json()
-        if res.get("status", "") != "ok":
-            click.echo(f"remote service failed to analyze {path}", err=True)
+        res_status = res.get("status", "")
+        if res_status != "ok":
+            click.echo(
+                f"remote service failed to analyze {path}, status was: {res_status}",
+                err=True,
+            )
             return None
         return res["comment"]
-    except json.JSONDecodeError:
-        click.echo(f"bad response from {REMOTE_URL}", err=True)
+    except json.JSONDecodeError as ex:
+        click.echo(f"bad response from {REMOTE_URL}: {ex}", err=True)
         return None
     except Exception as ex:
         click.echo(f"something went wrong contacting {REMOTE_URL}: {ex}", err=True)
@@ -174,6 +179,7 @@ def invoke_semgrep(
         click.echo(f"introduced {introduced_targets.keys()}", err=True)
 
         res = ""
+        start_t = time.time()
         for path, (a, b) in changed_targets.items():
             compared = compare_lockfiles(str(path), a, b, this_repo_name, this_pr_id)
             if compared is not None:
@@ -183,6 +189,10 @@ def invoke_semgrep(
             if compared is not None:
                 res += compared + "\n"
 
+        click.echo(
+            f"finished remote request in {time.time() - start_t}s, output length {len(res)}",
+            err=True,
+        )
         if len(res):
             # from https://github.com/actions/toolkit/blob/main/docs/commands.md
             output_file = os.environ.get("GITHUB_ENV")
