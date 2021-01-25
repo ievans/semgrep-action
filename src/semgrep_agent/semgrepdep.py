@@ -102,7 +102,7 @@ def compare_lockfiles(
                 "for_repo": for_repo,
                 "for_pr": for_pr,
             },
-            timeout=600,
+            timeout=(20 * 60),
         )
         res: Dict[str, str] = output.json()
         res_status = res.get("status", "")
