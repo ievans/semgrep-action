@@ -10,7 +10,7 @@ Semgrepdep inspects PRs with yarn/pipenv lockfile changes and uses [Semgrep](htt
 
 This GitHub Action is an experiment built by [r2c](https://r2c.dev). If you have questions, please ask in the [r2c Slack](https://r2c.dev/slack).
 
-## 🚨 NOTICE: experimental beta software! Nothing is guaranteed! 🚨 
+## 🚨 NOTICE: experimental beta software! Nothing is guaranteed! 🚨
 
 To install, copy the [.github/workflows/semgrepdep.yml](.github/workflows/semgrepdep.yml) into your own repo:
 
@@ -21,6 +21,6 @@ To install, copy the [.github/workflows/semgrepdep.yml](.github/workflows/semgre
 
 Semgrepdep is a dependency itself...soooo what are the risks of adding it? You should carefully inspect the workflow file and verify that the `GITHUB_TOKEN`, which allows this bot to make comments, is passed into only Github-created actions (*not* this action) that run *after* Semgrepdep. This means that the bot will run without special priveleges that allow it to comment, and must rely on the official, Github-provided `github-script` to do the commenting.
 
-## Will this actually detect malicious packages? 
+## Will this actually detect malicious packages?
 
 We'll see...in a sampled assessment of a more rigorous version, it correctly identified malicious OR vulnerable packages <5% of the time. So best case, 19 out of 20 times the comment will lead you to a “this is fine” conclusion in exchange for "hmm, malicious?" the other 1 time.
